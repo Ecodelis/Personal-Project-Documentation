@@ -1,10 +1,14 @@
-from flask import Flask, request, jsonify
+import os
 import subprocess
+from flask import Flask, request, jsonify
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-SECRET = "test-random-string-here"
-MAC = "XX:XX:XX:XX:XX:XX"
-PC_TAILSCALE_IP = "100.x.x.x"
+SECRET = os.environ.get("WAKE_SECRET")
+MAC = os.environ.get("WAKE_MAC")
+PC_TAILSCALE_IP = os.environ.get("PC_TAILSCALE_IP")
 RECHECK_SECONDS = 10
 
 def is_pc_reachable():
@@ -159,7 +163,7 @@ PAGE = """
   </script>
 </body>
 </html>
-""".replace("SECRET_PLACEHOLDER", SECRET).replace("RECHECK_SECONDS_PLACEHOLDER", str(RECHECK_SECONDS))
+""".replace("SECRET_PLACEHOLDER", SECRET or "").replace("RECHECK_SECONDS_PLACEHOLDER", str(RECHECK_SECONDS))
 
 @app.route('/')
 def index():
@@ -176,4 +180,7 @@ def wake():
     subprocess.run(['wakeonlan', MAC])
     return "Magic packet sent"
 
-app.run(host='0.0.0.0', port=5000)
+if __name__ == '__main__':
+    if not SECRET or not MAC or not PC_TAILSCALE_IP:
+        raise RuntimeError("Missing WAKE_SECRET, WAKE_MAC, or PC_TAILSCALE_IP in .env")
+    app.run(host='0.0.0.0', port=5000)
