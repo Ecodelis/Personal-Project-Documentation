@@ -1,0 +1,12 @@
+[Unit]
+Description=Wake PC Flask server
+After=network.target tailscaled.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/eco/wol_server.py
+WorkingDirectory=/home/eco
+Restart=always
+User=eco
+
+[Install]
+WantedBy=multi-user.target
